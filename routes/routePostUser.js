@@ -5,10 +5,10 @@ module.exports = function(req, res, next) {
 	
 	console.log('POST user: ', req.body);
 
-	var uid = req.param('uid');
+	var user_id = req.param('user_id');
 	var err;
-	if (!uid) {
-		err = new Error('Must supply user `uid`');
+	if (!user_id) {
+		err = new Error('Must supply user `user_id`');
 		err.status = 400;
 		return next(err);
 	}
@@ -23,7 +23,7 @@ module.exports = function(req, res, next) {
 		public_key: req.body.public_key
 	};
 
-	User.save(uid, dataToSave, function(error, result){
+	User.save(user_id, dataToSave, function(error, result){
 		if (error) {
 			return next(error);
 		}

@@ -2,22 +2,25 @@ var User = require('../models/user');
 
 module.exports = function(req, res, next) {
 
-	var uid = req.param('uid');
+	var user_id = req.param('user_id');
 
-	console.log('GET user: ', uid);
+	console.log('GET user: ', user_id);
 
-	if (!uid) {
-		var err = new Error('Must supply `uid` to get user record');
+	if (!user_id) {
+		var err = new Error('Must supply `user_id` to get user record');
 		err.status = 400;
 		return next(err);
 	}
 
-	User.get(uid, function(error, result){
+	User.get(user_id, function(error, result){
 		if (error) {
 			return next(error);
 		}
 
-		res.send(result);
+		res.send({
+			success: true,
+			user: result
+		});
 	});
 
 };

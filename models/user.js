@@ -6,27 +6,29 @@ exports.init = init;
 exports.get = get;
 exports.save = save;
 exports.isUser = isUser;
+exports.isValidUserId = isValidUserId;
+
+var saveUser = db.saveToObject.bind(db, exports.object_name);
+var getUser = db.getFromObject.bind(db, exports.object_name);
 
 function init (callback) {
 	db.ensureObjectExists(exports.object_name, callback);
 }
 
-function get (uid, callback) {
-	db.getFromObject(exports.object_name, uid, function(error, result){
+function get (user_id, callback) {
+	getUser(user_id, function(error, result){
 		if (error) {
 			return callback(error);
 		} else if (!result) {
-			return callback(new Error('User does not exist. uid: ' + uid));
+			return callback(new Error('User does not exist. user_id: ' + user_id));
 		}
-
-		console.log('get', result);
 
 		callback(null, result);
 	});
 }
 
-function save (uid, user, callback) {
-	db.getFromObject(exports.object_name, uid, function(error, result){
+function save (user_id, user, callback) {
+	getUser(user_id, function(error, result){
 		if (error) {
 			return callback(error);
 		}
@@ -36,18 +38,24 @@ function save (uid, user, callback) {
 			newUserEntry[key] = user[key];
 		});
 
-		if (!newUserEntry.uid) {
-			newUserEntry.uid = uid;
+		if (!newUserEntry.user_id) {
+			newUserEntry.user_id = user_id;
+		}
+
+		if (!newUserEntry.balances) {
+			newUserEntry.balances = {};
 		}
 
 		if (!newUserEntry.public_key) {
 			return callback(new Error('User entry must include public_key'));
 		}
 
-		db.saveToObject(exports.object_name, uid, newUserEntry, function(error, result){
+		saveUser(user_id, newUserEntry, function(error, result){
 			if (error) {
 				return callback(error);
 			}
+
+			console.log('Saved user: ', newUserEntry);
 
 			callback(null, newUserEntry);
 		});
@@ -55,12 +63,26 @@ function save (uid, user, callback) {
 
 }
 
+function updateBalance(user_id, currency, newBalance, callback) {
+	getUser(user_id, function(error, result){
+		if (error) {
+			return callback(error);
+		}
+
+		if (!result.balances[currency]) {
+			result.balances[currency] = newBalance;
+		}
+
+		saveUser(user_id, result, callback);
+	});
+}
+
 function isUser (user) {
 	if (!user || typeof user !== 'object') {
 		return false;
 	}
 
-	if (typeof user.uid !== 'string' || !user.uid || user.uid.length > 32) {
+	if (!isValidUserId(user.user_id)) {
 		return false;
 	}
 
@@ -69,4 +91,8 @@ function isUser (user) {
 	}
 
 	return true;
+}
+
+function isValidUserId(user_id) {
+	return (typeof user_id === 'string' && user_id && user_id.length <= 32);
 }

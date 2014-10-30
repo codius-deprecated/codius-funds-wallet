@@ -1,3 +1,4 @@
+var Promise = require('bluebird');
 var express = require('express');
 var bodyParser = require('body-parser');
 var auth = require('./lib/auth');
@@ -20,10 +21,27 @@ app.use(auth.middleware.verifySignature);
 
 // Load routes
 var routePostUser = require('./routes/routePostUser');
+var routePostPayment = require('./routes/routePostPayment');
 var routeGetUser = require('./routes/routeGetUser');
 
-app.post('/user', routePostUser);
-app.get('/user/:uid', routeGetUser);
+app.post('/users', routePostUser);
+app.post('/payments', routePostPayment);
+app.get('/users/:user_id', routeGetUser);
+
+// For testing purposes only (obviously)
+app.post('/showmethemoney', function(req, res, next){
+	var user = req.body;
+	User.save(user.user_id, user, function(error, result){
+		if (error) {
+			return next(error);
+		}
+
+		res.send({
+			success: true,
+			user: result
+		});
+	});
+});
 
 // Error handler
 app.use(function(err, req, res, next) {
