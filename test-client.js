@@ -7,9 +7,10 @@ var keypair2 = nacl.sign.keyPair();
 var user1 = {
 	user_id: 'user1',
 	public_key: nacl.util.encodeBase64(keypair1.publicKey),
-	balances: {
-		XRP: 10000000000
-	}
+	balances: [{
+		currency: 'XRP',
+		balance: 10000000000
+	}]
 };
 var user2 = {
 	user_id: 'user2',
@@ -32,14 +33,7 @@ rp({
 	}
 })
 .then(function(response){
-	return rp('http://localhost:8000/users/user1');
-})
-.then(function(response){
-	var user = response.body;
-	console.log('After /showmethemoney user1 has record: ', user);
-})
-.catch(function(response){
-	console.log(response.body);
+	console.log('after showmethemoney: ', response.user);
 })
 .then(function(){
 	return rp({
@@ -51,12 +45,8 @@ rp({
 		}
 	})
 })
-.then(function(){
-	return rp('http://localhost:8000/users/user2');
-})
 .then(function(response){
-	var user = response.body;
-	console.log('After POST /users user2 has record: ', user);
+	console.log('after post users: ', response.user);
 })
 .then(function(){
 	var payment = {
@@ -79,17 +69,14 @@ rp({
 	return rp('http://localhost:8000/users/user1');
 })
 .then(function(response){
-	console.log(response);
-	var user = response.body;
-	console.log('After POST /payments user1 has record: ', user);
+	console.log('After POST /payments user1 has record: ', JSON.parse(response).user);
 })
 .then(function(response){
 	return rp('http://localhost:8000/users/user2');
 })
 .then(function(response){
-	var user = response.body;
-	console.log('After POST /payments user2 has record: ', user);
+	console.log('After POST /payments user2 has record: ', JSON.parse(response).user);
 })
 .catch(function(response){
-	console.error(response.body);
+	console.error(response.error);
 });

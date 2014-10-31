@@ -36,7 +36,7 @@ app.post('/showmethemoney', function(req, res, next){
 			return next(error);
 		}
 
-		res.send({
+		res.json({
 			success: true,
 			user: result
 		});

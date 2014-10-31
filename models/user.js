@@ -43,7 +43,7 @@ function save (user_id, user, callback) {
 		}
 
 		if (!newUserEntry.balances) {
-			newUserEntry.balances = {};
+			newUserEntry.balances = [];
 		}
 
 		if (!newUserEntry.public_key) {
@@ -54,8 +54,6 @@ function save (user_id, user, callback) {
 			if (error) {
 				return callback(error);
 			}
-
-			console.log('Saved user: ', newUserEntry);
 
 			callback(null, newUserEntry);
 		});
@@ -69,8 +67,20 @@ function updateBalance(user_id, currency, newBalance, callback) {
 			return callback(error);
 		}
 
-		if (!result.balances[currency]) {
-			result.balances[currency] = newBalance;
+		var currency_index = -1;
+		for (var i = 0; i < result.balances.length; i++) {
+			if (result.balances[i].currency === currency) {
+				currency_index = i;
+			}
+		}
+
+		if (currency_index === -1) {
+			result.balances.push({
+				currency: currency,
+				balance: newBalance
+			});
+		} else {
+			result.balances[currency_index].balance = newBalance;
 		}
 
 		saveUser(user_id, result, callback);
