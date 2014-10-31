@@ -9,7 +9,6 @@ module.exports = function(req, res, next) {
 	var payment = req.body;
 
 	// TODO put field validation elsewhere
-	console.log('POST /payments', payment);
 
 	if (!payment.payment_id || typeof payment.payment_id !== 'string' || payment.payment_id.length > 32) {
 		var err = new Error('Invalid payment. Must include `payment_id`');
@@ -42,8 +41,8 @@ module.exports = function(req, res, next) {
 			return next(error);
 		}
 
-		res.send({
-			status: success
+		res.json({
+			success: true
 		});
 	});
 

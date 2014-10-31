@@ -3,8 +3,6 @@ var User = require('../models/user');
 module.exports = function(req, res, next) {
 	// TODO: prevent someone from spamming contract with new accounts
 	
-	console.log('POST user: ', req.body);
-
 	var user_id = req.param('user_id');
 	var err;
 	if (!user_id) {
@@ -28,9 +26,7 @@ module.exports = function(req, res, next) {
 			return next(error);
 		}
 
-		console.log('Saved user: ', result);
-
-		res.send({
+		res.json({
 			success: true,
 			user: result
 		});
