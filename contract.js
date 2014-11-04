@@ -46,9 +46,11 @@ app.post('/showmethemoney', function(req, res, next){
 // Error handler
 app.use(function(err, req, res, next) {
 	if (err) {
-		console.error(err.stack);
-		res.status(err.status || 500).send('Error: ' + err.message + '\n');
+		console.error(err.name, err.message, '\n', err.stack);
+		res.status(err.status || 500).send(err.name + ': ' + err.message + '\n');
+		return;
 	}
+	next();
 });
 
 // Start app

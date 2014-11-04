@@ -1,5 +1,8 @@
-var rp = require('request-promise');
+var Promise = require('bluebird');
 var nacl = require('tweetnacl');
+var httpSignature = require('http-signature');
+var request = Promise.promisify(require('request'));
+
 
 var keypair1 = nacl.sign.keyPair();
 var keypair2 = nacl.sign.keyPair();
@@ -17,36 +20,34 @@ var user2 = {
 	public_key: nacl.util.encodeBase64(keypair2.publicKey)
 };
 
-function sign(body, keypair) {
-	var message = JSON.stringify(body);
-	var signature = nacl.sign.detached(nacl.util.decodeUTF8(message), keypair.secretKey);
-	return nacl.util.encodeBase64(signature);
-}
 
-
-rp({
+request({
 	url: 'http://localhost:8000/showmethemoney',
 	method: 'POST',
 	json: user1,
-	headers: {
-		Authentication: 'Ed25519 ' + sign(user1, keypair1)
+	httpSignature: {
+		keyId: user1.user_id,
+		key: nacl.util.encodeBase64(keypair1.secretKey),
+		algorithm: 'ed25519-sha512'
 	}
 })
-.then(function(response){
-	console.log('after showmethemoney: ', response.user);
+.then(function(requestResponse){
+	console.log('Registered User 1', JSON.stringify(requestResponse[1], null, 2));
 })
 .then(function(){
-	return rp({
+	return request({
 		url: 'http://localhost:8000/users',
 		method: 'POST',
 		json: user2,
-		headers: {
-			Authentication: 'Ed25519 ' + sign(user2, keypair2)
+		httpSignature: {
+			keyId: user2.user_id,
+			key: nacl.util.encodeBase64(keypair2.secretKey),
+			algorithm: 'ed25519-sha512'
 		}
 	})
 })
-.then(function(response){
-	console.log('after post users: ', response.user);
+.then(function(requestResponse){
+	console.log('Registered User 2', JSON.stringify(requestResponse[1], null, 2));
 })
 .then(function(){
 	var payment = {
@@ -56,27 +57,29 @@ rp({
 		currency: 'XRP',
 		amount: 999999
 	};
-	return rp({
+	return request({
 		url: 'http://localhost:8000/payments',
 		method: 'POST',
 		json: payment,
-		headers: {
-			Authentication: 'Ed25519 ' + sign(payment, keypair1)
+		httpSignature: {
+			keyId: user1.user_id,
+			key: nacl.util.encodeBase64(keypair1.secretKey),
+			algorithm: 'ed25519-sha512'
 		}
 	})
 })
-.then(function(response){
-	return rp('http://localhost:8000/users/user1');
+.then(function(){
+	return request('http://localhost:8000/users/user1');
 })
-.then(function(response){
-	console.log('After POST /payments user1 has record: ', JSON.parse(response).user);
+.then(function(requestResponse){
+	console.log('After payment this is User 1', JSON.stringify(requestResponse[1], null, 2));
 })
-.then(function(response){
-	return rp('http://localhost:8000/users/user2');
+.then(function(){
+	return request('http://localhost:8000/users/user2');
 })
-.then(function(response){
-	console.log('After POST /payments user2 has record: ', JSON.parse(response).user);
+.then(function(requestResponse){
+	console.log('After payment this is User 2', JSON.stringify(requestResponse[1], null, 2));
 })
-.catch(function(response){
-	console.error(response.error);
+.catch(function(error){
+	console.error(error);
 });
