@@ -1,5 +1,4 @@
 var db = require('../lib/db');
-var crypto = require('../lib/crypto');
 
 exports.object_name = 'users';
 exports.init = init;
@@ -7,6 +6,7 @@ exports.get = get;
 exports.save = save;
 exports.isUser = isUser;
 exports.isValidUserId = isValidUserId;
+exports.BASE64_REGEX = /^(?:[A-Za-z0-9+\/]{4})*(?:[A-Za-z0-9+\/]{2}==|[A-Za-z0-9+\/]{3}=)?$/;
 
 var saveUser = db.saveToObject.bind(db, exports.object_name);
 var getUser = db.getFromObject.bind(db, exports.object_name);
@@ -96,7 +96,7 @@ function isUser (user) {
 		return false;
 	}
 
-	if (typeof user.public_key !== 'string' || !crypto.BASE64_REGEX.test(user.public_key)) {
+	if (typeof user.public_key !== 'string' || !exports.BASE64_REGEX.test(user.public_key)) {
 		return false;
 	}
 
