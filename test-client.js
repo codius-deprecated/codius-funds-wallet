@@ -21,6 +21,56 @@ var user2 = {
 };
 
 
+function sendPayment(amount){
+	var payment = {
+		payment_id: 'test',
+		source: 'user1',
+		destination: 'user2',
+		currency: 'XRP',
+		amount: amount
+	};
+	return request({
+		url: 'http://localhost:8000/payments',
+		method: 'POST',
+		json: payment,
+		httpSignature: {
+			keyId: user1.user_id,
+			key: nacl.util.encodeBase64(keypair1.secretKey),
+			algorithm: 'ed25519-sha512'
+		}
+	})
+}
+
+function sendPaymentAndCheckBalances() {
+	return sendPayment(100)
+	.then(function(){
+		return request({
+			url: 'http://localhost:8000/users/user1',
+			httpSignature: {
+				keyId: user1.user_id,
+				key: nacl.util.encodeBase64(keypair1.secretKey),
+				algorithm: 'ed25519-sha512'
+			}
+		});
+	})
+	.then(function(requestResponse){
+		console.log('After payment this is User 1', JSON.stringify(requestResponse[1], null, 2));
+	})
+	.then(function(){
+		return request({
+			url: 'http://localhost:8000/users/user2',
+			httpSignature: {
+				keyId: user2.user_id,
+				key: nacl.util.encodeBase64(keypair2.secretKey),
+				algorithm: 'ed25519-sha512'
+			}
+		});
+	})
+	.then(function(requestResponse){
+		console.log('After payment this is User 2', JSON.stringify(requestResponse[1], null, 2));
+	})
+}
+
 request({
 	url: 'http://localhost:8000/showmethemoney',
 	method: 'POST',
@@ -49,37 +99,23 @@ request({
 .then(function(requestResponse){
 	console.log('Registered User 2', JSON.stringify(requestResponse[1], null, 2));
 })
+// .then(sendPaymentAndCheckBalances)
+// .then(sendPaymentAndCheckBalances)
+// .then(sendPaymentAndCheckBalances)
+// .then(sendPaymentAndCheckBalances)
+// .then(sendPaymentAndCheckBalances)
+// .then(sendPaymentAndCheckBalances)
+
+
 .then(function(){
-	var payment = {
-		payment_id: 'test',
-		source: 'user1',
-		destination: 'user2',
-		currency: 'XRP',
-		amount: 999999
-	};
-	return request({
-		url: 'http://localhost:8000/payments',
-		method: 'POST',
-		json: payment,
-		httpSignature: {
-			keyId: user1.user_id,
-			key: nacl.util.encodeBase64(keypair1.secretKey),
-			algorithm: 'ed25519-sha512'
-		}
-	})
+	var numbers = [];
+	for (var i = 0; i < 100; i++) {
+		numbers.push(i);
+	}
+
+	return Promise.each(numbers, sendPaymentAndCheckBalances);
 })
-.then(function(){
-	return request('http://localhost:8000/users/user1');
-})
-.then(function(requestResponse){
-	console.log('After payment this is User 1', JSON.stringify(requestResponse[1], null, 2));
-})
-.then(function(){
-	return request('http://localhost:8000/users/user2');
-})
-.then(function(requestResponse){
-	console.log('After payment this is User 2', JSON.stringify(requestResponse[1], null, 2));
-})
+
 .catch(function(error){
 	console.error(error);
 });
