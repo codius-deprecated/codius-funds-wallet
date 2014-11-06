@@ -1,19 +1,14 @@
 var db = require('../lib/db');
 
-exports.object_name = 'users';
-exports.init = init;
 exports.get = get;
 exports.save = save;
 exports.isUser = isUser;
 exports.isValidUserId = isValidUserId;
 exports.BASE64_REGEX = /^(?:[A-Za-z0-9+\/]{4})*(?:[A-Za-z0-9+\/]{2}==|[A-Za-z0-9+\/]{3}=)?$/;
 
-var saveUser = db.saveToObject.bind(db, exports.object_name);
-var getUser = db.getFromObject.bind(db, exports.object_name);
-
-function init (callback) {
-	db.ensureObjectExists(exports.object_name, callback);
-}
+var tableName = 'users';
+var saveUser = db.saveToTable.bind(db, tableName);
+var getUser = db.getFromTable.bind(db, tableName);
 
 function get (user_id, callback) {
 	getUser(user_id, function(error, result){

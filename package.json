@@ -10,7 +10,6 @@
     "http-signature": "git://github.com/codius/node-http-signature.git#ed25519"
   },
   "devDependencies": {
-    "codius-engine": "git://github.com/codius/codius-engine",
     "request": "git://github.com/codius/request.git#ed25519",
     "tweetnacl": "^0.12.2"
   }
