@@ -8,25 +8,16 @@ var User = require('./models/user');
 
 // Configure app
 app.set('port', process.env.PORT || 8000);
-app.use(bodyParser.json({
-	verify: function(req, res, buf, encoding) {
-		// Take advantage of the built in verify function
-		// to retain a copy of the bodyString, which
-		// we need for signature verification
-		req.bodyString = buf.toString('utf8');
-	}
-}));
-app.use(auth.middleware.addUserToReq);
-app.use(auth.middleware.verifySignature);
+app.use(bodyParser.json());
 
 // Load routes
 var routePostUser = require('./routes/routePostUser');
 var routePostPayment = require('./routes/routePostPayment');
 var routeGetUser = require('./routes/routeGetUser');
 
-app.post('/users', routePostUser);
-app.post('/payments', routePostPayment);
-app.get('/users/:user_id', routeGetUser);
+app.post('/users', auth.verifySignature, routePostUser);
+app.post('/payments', auth.verifySignature, routePostPayment);
+app.get('/users/:user_id', auth.verifySignature, routeGetUser);
 
 // For testing purposes only (obviously)
 app.post('/showmethemoney', function(req, res, next){
@@ -54,8 +45,5 @@ app.use(function(err, req, res, next) {
 });
 
 // Start app
-// TODO make this nicer by adding promises
-User.init(function(){
-	app.listen(app.get('port'));
-	console.log('Contract listening on port: ' + app.get('port'));
-});
+app.listen(app.get('port'));
+console.log('Contract listening on port: ' + app.get('port'));
