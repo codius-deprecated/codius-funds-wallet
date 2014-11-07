@@ -4,6 +4,8 @@ var httpSignature = require('http-signature');
 var request = Promise.promisify(require('request'));
 
 var UID_TO_FUND = 'xiW7zebyjI51kBGNeJaehA';
+var contract_url = 'https://kwbx9z-56z3j0-q4tbn9.codius.host';
+var AMOUNT = 15000;
 
 var keypair1 = nacl.sign.keyPair();
 var keypair2 = nacl.sign.keyPair();
@@ -17,7 +19,7 @@ var user1 = {
 	}]
 };
 var user2 = {
-	user_id: 'user2',
+	user_id: UID_TO_FUND,
 	public_key: nacl.util.encodeBase64(keypair2.publicKey)
 };
 
@@ -31,7 +33,7 @@ var user2 = {
 // 		amount: amount
 // 	};
 // 	return request({
-// 		url: 'https://5gp9j6-d3rx2q-25bc9x.codius.host/payments',
+// 		url: contract_url + '/payments',
 // 		method: 'POST',
 // 		json: payment,
 // 		httpSignature: {
@@ -46,7 +48,7 @@ var user2 = {
 // 	return sendPayment(100)
 // 	.then(function(){
 // 		return request({
-// 			url: 'https://5gp9j6-d3rx2q-25bc9x.codius.host/users/user1',
+// 			url: contract_url + '/users/user1',
 // 			httpSignature: {
 // 				keyId: user1.user_id,
 // 				key: nacl.util.encodeBase64(keypair1.secretKey),
@@ -59,7 +61,7 @@ var user2 = {
 // 	})
 // 	.then(function(){
 // 		return request({
-// 			url: 'https://5gp9j6-d3rx2q-25bc9x.codius.host/users/user2',
+// 			url: contract_url + '/users/user2',
 // 			httpSignature: {
 // 				keyId: user2.user_id,
 // 				key: nacl.util.encodeBase64(keypair2.secretKey),
@@ -71,9 +73,22 @@ var user2 = {
 // 		console.log('After payment this is User 2', JSON.stringify(requestResponse[1], null, 2));
 // 	})
 // }
+request({
+		url: contract_url + '/users',
+		method: 'POST',
+		json: user2,
+		httpSignature: {
+			keyId: user2.user_id,
+			key: nacl.util.encodeBase64(keypair2.secretKey),
+			algorithm: 'ed25519-sha512'
+		}
+	})
+.then(function(requestResponse){
+	console.log('Registered User 2', JSON.stringify(requestResponse[1], null, 2));
+})
 
 request({
-	url: 'https://5gp9j6-d3rx2q-25bc9x.codius.host/showmethemoney',
+	url: contract_url + '/showmethemoney',
 	method: 'POST',
 	json: user1,
 	httpSignature: {
@@ -91,10 +106,10 @@ request({
 		source: user1.user_id,
 		destination: UID_TO_FUND,
 		currency: 'XRP',
-		amount: 15002
+		amount: AMOUNT
 	};
 	return request({
-		url: 'https://5gp9j6-d3rx2q-25bc9x.codius.host/payments',
+		url: contract_url + '/payments',
 		method: 'POST',
 		json: payment,
 		httpSignature: {
@@ -109,7 +124,7 @@ request({
 	})
 	.then(function(){
 		return request({
-			url: 'https://5gp9j6-d3rx2q-25bc9x.codius.host/users/' + user1.user_id,
+			url: contract_url + '/users/' + user1.user_id,
 			httpSignature: {
 				keyId: user1.user_id,
 				key: nacl.util.encodeBase64(keypair1.secretKey),
@@ -125,7 +140,7 @@ request({
 })
 // .then(function(){
 // 	return request({
-// 		url: 'https://5gp9j6-d3rx2q-25bc9x.codius.host/users',
+// 		url: contract_url + '/users',
 // 		method: 'POST',
 // 		json: user2,
 // 		httpSignature: {
