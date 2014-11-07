@@ -1,4 +1,3 @@
-var Promise = require('bluebird');
 var express = require('express');
 var bodyParser = require('body-parser');
 var auth = require('./lib/auth');
@@ -32,6 +31,10 @@ app.post('/showmethemoney', function(req, res, next){
 			user: result
 		});
 	});
+});
+
+app.get('/hello', function(req, res){
+	res.send('hello. this is your smart contract speaking. (what else did you think this would do?)');
 });
 
 // Error handler
