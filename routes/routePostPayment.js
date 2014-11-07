@@ -25,6 +25,11 @@ module.exports = function(req, res, next) {
 		err.status = 400;
 		return next(err);
 	}
+	if (payment.destination === payment.source) {
+		var err = new Error('Invalid payment. Cannot send a payment to yourself.');
+		err.status = 400;
+		return next(err);
+	}
 	if (!payment.currency || currencies.indexOf(payment.currency) === -1) {
 		var err = new Error('Invalid payment. Must include valid `currency` code. Supported currencies are: ' + currencies.join(', '));
 		err.status = 400;
